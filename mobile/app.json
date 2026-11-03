@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "CashPilot",
+    "slug": "cashpilot",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": { "image": "./assets/splash-icon.png", "resizeMode": "contain", "backgroundColor": "#0B1F4B" },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.flutterflirt.cashpilot",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take photos of bills and receipts for expense claims.",
+        "NSPhotoLibraryUsageDescription": "Attach receipt images to expense claims."
+      }
+    },
+    "android": {
+      "package": "com.flutterflirt.cashpilot",
+      "adaptiveIcon": { "foregroundImage": "./assets/android-icon-foreground.png", "backgroundImage": "./assets/android-icon-background.png", "monochromeImage": "./assets/android-icon-monochrome.png" },
+      "permissions": ["CAMERA"]
+    },
+    "web": { "favicon": "./assets/favicon.png" },
+    "plugins": [
+      "expo-secure-store",
+      ["expo-image-picker", { "cameraPermission": "Take photos of bills and receipts for expense claims." }]
+    ]
+  }
+}
