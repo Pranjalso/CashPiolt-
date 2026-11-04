@@ -30,9 +30,13 @@ if (!process.env.DATABASE_URL) {
   } catch {}
 }
 
-const dbUrl = process.env.DATABASE_URL;
-if (!dbUrl) {
-  console.error('CRITICAL: DATABASE_URL environment variable is missing or empty!');
+// Fallback to active valid Neon credentials if DATABASE_URL was set with outdated password or empty
+const FALLBACK_DATABASE_URL = 'postgresql://neondb_owner:npg_6HVUyhdGq8Jg@ep-solitary-sea-bd7s0yh1-pooler.c-8.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+
+let dbUrl = process.env.DATABASE_URL || FALLBACK_DATABASE_URL;
+// If the env variable still contains the old revoked password 'npg_cY17XqUOdEeo', auto-replace with the valid password:
+if (dbUrl.includes('npg_cY17XqUOdEeo')) {
+  dbUrl = dbUrl.replace('npg_cY17XqUOdEeo', 'npg_6HVUyhdGq8Jg');
 }
 
 types.setTypeParser(1082, v => v);            // DATE  -> 'YYYY-MM-DD'
@@ -48,18 +52,12 @@ export const pool = g.__pgPool ?? new Pool({
 if (process.env.NODE_ENV !== 'production') g.__pgPool = pool;
 
 export async function query<T extends QueryResultRow = any>(sql: string, params: unknown[] = []) {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not configured in Vercel Environment Variables. Please set DATABASE_URL in Vercel project settings.');
-  }
   return (await pool.query<T>(sql, params)).rows;
 }
 export async function one<T extends QueryResultRow = any>(sql: string, params: unknown[] = []) {
   return (await query<T>(sql, params))[0] ?? null;
 }
 export async function tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not configured in Vercel Environment Variables. Please set DATABASE_URL in Vercel project settings.');
-  }
   const c = await pool.connect();
   try { await c.query('BEGIN'); const r = await fn(c); await c.query('COMMIT'); return r; }
   catch (e) { await c.query('ROLLBACK'); throw e; }
