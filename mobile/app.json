@@ -6,7 +6,11 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": { "image": "./assets/splash-icon.png", "resizeMode": "contain", "backgroundColor": "#0B1F4B" },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B1F4B"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.flutterflirt.cashpilot",
@@ -17,13 +21,33 @@
     },
     "android": {
       "package": "com.flutterflirt.cashpilot",
-      "adaptiveIcon": { "foregroundImage": "./assets/android-icon-foreground.png", "backgroundImage": "./assets/android-icon-background.png", "monochromeImage": "./assets/android-icon-monochrome.png" },
-      "permissions": ["CAMERA"]
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
-    "web": { "favicon": "./assets/favicon.png" },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
     "plugins": [
       "expo-secure-store",
-      ["expo-image-picker", { "cameraPermission": "Take photos of bills and receipts for expense claims." }]
-    ]
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Take photos of bills and receipts for expense claims."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9ea8d6e4-47f7-441e-946a-131214616b29"
+      }
+    },
+    "owner": "pranjalsoni484"
   }
 }
