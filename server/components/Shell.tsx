@@ -190,8 +190,14 @@ export default function Shell({
           {mobileMenuOpen ? '✕' : '☰'}
         </button>
         <div className="brand" style={{ padding: '0 8px' }}>
-          <span className="brand-logo-dot" />
-          Cash<span>Pilot</span>
+          <div className="brand-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FFFFFF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+          </div>
+          <div className="brand-text">Cash<span>Pilot</span></div>
         </div>
         <div style={{ width: 36 }} />
       </header>
@@ -207,8 +213,14 @@ export default function Shell({
       {/* Sidebar (Desktop Sticky + Mobile Drawer) */}
       <aside className={`side ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="brand">
-          <span className="brand-logo-dot" />
-          Cash<span>Pilot</span>
+          <div className="brand-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFFFFF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+          </div>
+          <div className="brand-text">Cash<span>Pilot</span></div>
         </div>
 
         <SessionBox
