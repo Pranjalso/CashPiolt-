@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="cpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B1F4B" />
+      <stop offset="50%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#E91E7B" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#cpGrad)" />
+  <!-- CP Monogram / Pilot Arrow -->
+  <path d="M18 18 H34 C41 18 45 22 45 28 C45 34 41 38 34 38 H27 V46 H18 Z M27 25 V31 H33 C35.5 31 37 29.8 37 28 C37 26.2 35.5 25 33 25 Z" fill="#FFFFFF" />
+  <circle cx="44" cy="42" r="6" fill="#12b39a" filter="url(#shadow)" />
+  <path d="M42 42 L46 39 V45 Z" fill="#FFFFFF" />
+</svg>
