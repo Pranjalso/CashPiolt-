@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { COOKIE, tokenFrom, verifySession } from '@/lib/session';
 import { rateLimit, getClientIp } from '@/lib/ratelimit';
 
-const PUBLIC = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/recurring/run'];
+const PUBLIC = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/recurring/run', '/api/health'];
 
 function applySecurityHeaders(res: NextResponse): NextResponse {
   // Prevent clickjacking
