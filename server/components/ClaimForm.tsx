@@ -181,8 +181,25 @@ export default function ClaimForm({ initial }: { initial?: { id: number; title: 
                           onChange={async e => {
                             const f = e.target.files?.[0];
                             if (!f) return;
-                            const { url, mime } = await fileToDataUrl(f);
-                            upd(i, { receipt_url: url, receipt_mime: mime });
+                            try {
+                              setBusy(true);
+                              const fd = new FormData();
+                              fd.append('file', f);
+                              const res = await fetch('/api/uploads/receipt', {
+                                method: 'POST',
+                                body: fd,
+                              });
+                              if (!res.ok) {
+                                const errData = await res.json().catch(() => ({}));
+                                throw new Error(errData.error || 'Failed to upload receipt');
+                              }
+                              const data = await res.json();
+                              upd(i, { receipt_url: data.url, receipt_mime: data.mime });
+                            } catch (err: any) {
+                              setErr(err.message || 'Receipt upload failed');
+                            } finally {
+                              setBusy(false);
+                            }
                           }}
                         />
                       </label>

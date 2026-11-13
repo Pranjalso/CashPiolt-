@@ -60,12 +60,15 @@ export const budgetSchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM'),
   items: z.array(z.object({ category_id: id, amount: z.coerce.number().min(0) })),
 });
-const RECEIPT_MAX = 2_800_000; // ~2 MB image as base64 data URL
+const RECEIPT_URL_MAX = 2048; // Standard URL length limit for object storage (S3 / R2 / Cloudinary / public URL)
 export const claimSchema = z.object({
   title: z.string().trim().min(2),
   items: z.array(z.object({
     expense_date: date, category_id: id, description: z.string().trim().min(1), amount: money,
-    receipt_url: z.string().max(RECEIPT_MAX, 'Receipt too large (max ~2 MB)').optional().nullable(),
+    receipt_url: z.string().trim().max(RECEIPT_URL_MAX, 'Receipt URL exceeds maximum length (2048 characters)').refine(
+      url => !url || url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://'),
+      'Receipt must be a valid stored URL (e.g. https://... or /uploads/...) rather than raw base64 data'
+    ).optional().nullable(),
     receipt_mime: optStr,
   })).min(1, 'Add at least one expense'),
   submit: z.coerce.boolean().default(false),

@@ -22,7 +22,18 @@ async function pickReceipt(source: 'camera' | 'library') {
   const a = r.assets[0];
   const out = await ImageManipulator.manipulateAsync(a.uri, (a.width ?? 0) > 1280 ? [{ resize: { width: 1280 } }] : [],
     { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG, base64: true });
-  return { receipt_url: `data:image/jpeg;base64,${out.base64}`, receipt_mime: 'image/jpeg' };
+  
+  // Upload to storage endpoint and get public object URL
+  try {
+    const uploadRes = await api<{ url: string; mime: string }>('/api/uploads/receipt', 'POST', {
+      data: `data:image/jpeg;base64,${out.base64}`,
+      mime: 'image/jpeg',
+    });
+    return { receipt_url: uploadRes.url, receipt_mime: uploadRes.mime };
+  } catch (err: any) {
+    Alert.alert('Upload Error', err.message || 'Failed to upload receipt image.');
+    return null;
+  }
 }
 
 export default function ClaimFormScreen() {
