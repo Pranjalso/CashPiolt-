@@ -186,7 +186,13 @@ function NavLinks({ nav }: { nav: NavSection[] }) {
             } else if (href === '/') {
               isActive = pathname === '/';
             } else {
-              isActive = pathname === href || pathname.startsWith(href + '/');
+              // Exact match or sub-route match (avoid matching /claims when on /claims/new if both are distinct menu items)
+              const hasSubRouteInNav = links.some(([otherHref]) => otherHref !== href && otherHref.startsWith(href + '/'));
+              if (hasSubRouteInNav) {
+                isActive = pathname === href;
+              } else {
+                isActive = pathname === href || pathname.startsWith(href + '/');
+              }
             }
 
             return (
