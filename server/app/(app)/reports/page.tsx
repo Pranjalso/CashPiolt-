@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { BalanceLine, CategoryBars } from '@/components/Charts';
 import { fmtDate, inr, inr2, monthStart, todayStr, useData } from '@/lib/client';
+import { SkeletonKpiGrid, SkeletonTableCard } from '@/components/Skeletons';
 
 function Section({ title, a }: { title: string; a: any }) {
   return (
@@ -115,6 +116,13 @@ export default function Reports() {
         </div>
       )}
 
+      {tab === 'forecast' && !fc && (
+        <div style={{ marginTop: 16 }}>
+          <SkeletonKpiGrid count={3} />
+          <SkeletonTableCard rows={6} cols={4} />
+        </div>
+      )}
+
       {tab === 'forecast' && fc && (
         <>
           <div className="card row no-print">
@@ -202,6 +210,12 @@ export default function Reports() {
         </>
       )}
 
+      {tab === 'statement' && !st && (
+        <div style={{ marginTop: 16, maxWidth: 760 }}>
+          <SkeletonTableCard rows={8} cols={2} />
+        </div>
+      )}
+
       {tab === 'statement' && st && (
         <div className="card" style={{ maxWidth: 760, padding: 0 }}>
           <h3 style={{ padding: '16px 16px 8px', margin: 0 }}>Cash flow statement · {fmtDate(st.from)} – {fmtDate(st.to)}</h3>
@@ -235,10 +249,22 @@ export default function Reports() {
         </div>
       )}
 
+      {tab === 'breakdown' && !br && (
+        <div style={{ marginTop: 16, maxWidth: 760 }}>
+          <SkeletonTableCard rows={5} cols={2} />
+        </div>
+      )}
+
       {tab === 'breakdown' && br && (
         <div className="card" style={{ maxWidth: 760 }}>
           <h3>{dir === 'OUT' ? 'Money out' : 'Money in'} by category</h3>
           <CategoryBars rows={br} />
+        </div>
+      )}
+
+      {tab === 'daybook' && !db && (
+        <div style={{ marginTop: 16, maxWidth: 900 }}>
+          <SkeletonTableCard rows={6} cols={6} />
         </div>
       )}
 
