@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import SessionBox from './SessionBox';
 
 type NavSection = [string, [string, string][]];
@@ -154,6 +154,60 @@ function NavIcon({ href }: { href: string }) {
   );
 }
 
+function NavLinks({ nav }: { nav: NavSection[] }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  return (
+    <div className="nav-sections">
+      {nav.map(([h, links]) => (
+        <div key={h} className="nav-group">
+          <h6>{h}</h6>
+          {links.map(([href, t]) => {
+            const hasQuery = href.includes('?');
+            let isActive = false;
+
+            if (hasQuery) {
+              const [hrefPath, hrefQuery] = href.split('?');
+              if (pathname === hrefPath) {
+                const targetParams = new URLSearchParams(hrefQuery);
+                let allMatch = true;
+                targetParams.forEach((val, key) => {
+                  const currentVal = searchParams ? searchParams.get(key) : null;
+                  // If on /dues with no ?kind, default is RECEIVABLE
+                  if (hrefPath === '/dues' && key === 'kind' && !currentVal) {
+                    if (val !== 'RECEIVABLE') allMatch = false;
+                  } else if (currentVal !== val) {
+                    allMatch = false;
+                  }
+                });
+                isActive = allMatch;
+              }
+            } else if (href === '/') {
+              isActive = pathname === '/';
+            } else {
+              isActive = pathname === href || pathname.startsWith(href + '/');
+            }
+
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`nav-link ${isActive ? 'active-nav' : ''}`}
+              >
+                <span className="nav-icon-wrap">
+                  <NavIcon href={href} />
+                </span>
+                <span className="nav-text">{t}</span>
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Shell({
   businesses,
   currentOrgId,
@@ -230,30 +284,9 @@ export default function Shell({
           role={userRole}
         />
 
-        <div className="nav-sections">
-          {nav.map(([h, links]) => (
-            <div key={h} className="nav-group">
-              <h6>{h}</h6>
-              {links.map(([href, t]) => {
-                const isActive =
-                  pathname === href ||
-                  (href !== '/' && pathname.startsWith(href.split('?')[0]));
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`nav-link ${isActive ? 'active-nav' : ''}`}
-                  >
-                    <span className="nav-icon-wrap">
-                      <NavIcon href={href} />
-                    </span>
-                    <span className="nav-text">{t}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+        <Suspense fallback={null}>
+          <NavLinks nav={nav} />
+        </Suspense>
       </aside>
 
       {/* Main Content Area */}
