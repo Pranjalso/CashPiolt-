@@ -260,6 +260,19 @@ CREATE TABLE audit_log (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- ---------- Idempotency Keys ------------------------------------------
+CREATE TABLE idempotency_keys (
+  key           TEXT NOT NULL,
+  org_id        INT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id       INT REFERENCES users(id) ON DELETE SET NULL,
+  endpoint      TEXT NOT NULL,
+  response_code INT NOT NULL,
+  response_body JSONB NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (org_id, key)
+);
+CREATE INDEX idx_idempotency_created ON idempotency_keys(org_id, created_at);
+
 -- ---------- Category templates per business type --------------------
 CREATE TABLE category_templates (
   business_type business_type,          -- NULL = common to all
