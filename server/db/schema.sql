@@ -215,6 +215,19 @@ CREATE TABLE expense_claim_items (
 
 ALTER TABLE transactions ADD CONSTRAINT fk_txn_claim FOREIGN KEY (claim_id) REFERENCES expense_claims(id);
 
+-- prevent deleting reimbursement transactions of paid expense claims
+CREATE OR REPLACE FUNCTION check_txn_delete_guard() RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.claim_id IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM expense_claims WHERE id = OLD.claim_id AND status = 'PAID') THEN
+      RAISE EXCEPTION 'Cannot delete transaction: linked expense claim % is already PAID', OLD.claim_id USING ERRCODE = 'check_violation';
+    END IF;
+  END IF;
+  RETURN OLD;
+END $$ LANGUAGE plpgsql;
+CREATE TRIGGER trg_txn_delete_guard BEFORE DELETE ON transactions
+FOR EACH ROW EXECUTE FUNCTION check_txn_delete_guard();
+
 -- claim number per business: CLM-2026-0001
 CREATE TABLE claim_sequences (org_id INT PRIMARY KEY, last_no INT NOT NULL DEFAULT 0);
 CREATE OR REPLACE FUNCTION next_claim_no(p_org INT) RETURNS TEXT AS $$
