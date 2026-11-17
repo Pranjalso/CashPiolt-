@@ -30,6 +30,27 @@ export const DELETE = api(async req => {
   const s = await requireRole('OWNER');
   const { user_id } = z.object({ user_id: z.coerce.number() }).parse(await req.json());
   if (user_id === s.uid) throw new HttpError(422, 'You cannot remove yourself');
-  await one(`DELETE FROM memberships WHERE org_id=$1 AND user_id=$2`, [s.orgId, user_id]);
-  return { ok: true };
+
+  return tx(async c => {
+    // Check if target user exists in this organization
+    const { rows: [target] } = await c.query(
+      `SELECT role FROM memberships WHERE org_id=$1 AND user_id=$2`,
+      [s.orgId, user_id]
+    );
+    if (!target) throw new HttpError(404, 'Member not found in this business');
+
+    // If target is an OWNER, ensure they are not the last remaining OWNER
+    if (target.role === 'OWNER') {
+      const { rows: [{ owner_count }] } = await c.query(
+        `SELECT COUNT(*)::int AS owner_count FROM memberships WHERE org_id=$1 AND role='OWNER'`,
+        [s.orgId]
+      );
+      if (owner_count <= 1) {
+        throw new HttpError(422, 'Cannot remove the last remaining owner of the organization');
+      }
+    }
+
+    await c.query(`DELETE FROM memberships WHERE org_id=$1 AND user_id=$2`, [s.orgId, user_id]);
+    return { ok: true };
+  });
 });
