@@ -82,7 +82,11 @@ export default function Recurring() {
               setBusy(true);
               try {
                 const r = await apiCall('/api/recurring/run', 'POST');
-                setOk(`${r.posted} due entries posted to the cash book`);
+                let msg = `${r.posted} due entries posted to the cash book`;
+                if (r.warnings?.length) {
+                  msg += `. Note: ${r.warnings.length} rule(s) had large historical gaps and were capped to prevent ledger distortion.`;
+                }
+                setOk(msg);
                 reload();
               } catch (x: any) {
                 setErr(x.message);
