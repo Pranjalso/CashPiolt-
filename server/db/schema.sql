@@ -46,6 +46,11 @@ CREATE TABLE memberships (
   PRIMARY KEY (org_id, user_id)
 );
 
+-- default date expressions in Indian Standard Time (IST, UTC+05:30)
+CREATE OR REPLACE FUNCTION current_date_ist() RETURNS DATE AS $$
+  SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kolkata')::date;
+$$ LANGUAGE sql STABLE;
+
 -- ---------- Masters ---------------------------------------------------
 CREATE TABLE accounts (
   id              SERIAL PRIMARY KEY,
@@ -55,7 +60,7 @@ CREATE TABLE accounts (
   bank_name       TEXT,
   account_no_last4 TEXT,
   opening_balance NUMERIC(14,2) NOT NULL DEFAULT 0,
-  opening_date    DATE NOT NULL DEFAULT CURRENT_DATE,
+  opening_date    DATE NOT NULL DEFAULT current_date_ist(),
   active          BOOLEAN NOT NULL DEFAULT TRUE,
   UNIQUE (org_id, name)
 );
@@ -92,7 +97,7 @@ CREATE TABLE dues (
   doc_no      TEXT,
   description TEXT,
   amount      NUMERIC(14,2) NOT NULL CHECK (amount > 0),
-  issue_date  DATE NOT NULL DEFAULT CURRENT_DATE,
+  issue_date  DATE NOT NULL DEFAULT current_date_ist(),
   due_date    DATE NOT NULL,
   status      due_status NOT NULL DEFAULT 'OPEN',
   created_by  INT REFERENCES users(id),
@@ -121,7 +126,7 @@ CREATE TABLE recurring_rules (
 CREATE TABLE transactions (
   id             BIGSERIAL PRIMARY KEY,
   org_id         INT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  txn_date       DATE NOT NULL DEFAULT CURRENT_DATE,
+  txn_date       DATE NOT NULL DEFAULT current_date_ist(),
   direction      flow_dir NOT NULL,
   amount         NUMERIC(14,2) NOT NULL CHECK (amount > 0),
   account_id     INT NOT NULL REFERENCES accounts(id),
@@ -369,8 +374,8 @@ CREATE VIEW v_due_status AS
 SELECT d.*, p.name AS party_name, c.name AS category_name,
        COALESCE((SELECT SUM(amount) FROM transactions t WHERE t.due_id = d.id),0) AS paid,
        d.amount - COALESCE((SELECT SUM(amount) FROM transactions t WHERE t.due_id = d.id),0) AS outstanding,
-       CASE WHEN d.status IN ('OPEN','PARTIAL') AND d.due_date < CURRENT_DATE
-            THEN CURRENT_DATE - d.due_date ELSE 0 END AS days_overdue
+       CASE WHEN d.status IN ('OPEN','PARTIAL') AND d.due_date < current_date_ist()
+            THEN current_date_ist() - d.due_date ELSE 0 END AS days_overdue
 FROM dues d
 LEFT JOIN parties p ON p.id = d.party_id
 LEFT JOIN categories c ON c.id = d.category_id;

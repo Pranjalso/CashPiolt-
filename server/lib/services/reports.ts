@@ -41,7 +41,7 @@ export async function dashboard(org: number) {
 export const budgetVsActual = (org: number, ym: string) => query(
   `SELECT b.category_id, c.name AS category, c.color, b.amount AS budget,
           COALESCE((SELECT SUM(t.amount) FROM transactions t WHERE t.org_id=$1 AND t.category_id=b.category_id
-                     AND t.direction='OUT' AND date_trunc('month', t.txn_date) = b.month),0) AS actual
+                     AND t.direction='OUT' AND t.txn_date >= b.month AND t.txn_date < (b.month + interval '1 month')::date),0) AS actual
      FROM budgets b JOIN categories c ON c.id=b.category_id
     WHERE b.org_id=$1 AND b.month = ($2 || '-01')::date ORDER BY c.name`, [org, ym]);
 
