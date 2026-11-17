@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { apiCall, useData } from '@/lib/client';
-import { Field, Modal, Msg } from './ui';
+import { ConfirmModal, Field, Modal, Msg } from './ui';
 
 export type FieldDef = {
   name: string;
@@ -37,8 +37,27 @@ export default function MasterPage({
 }) {
   const { data, error, reload } = useData<any[]>(endpoint);
   const [ed, setEd] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+
+  async function handleDelete(target: any) {
+    const id = target.id ?? target.account_id;
+    if (!id) return;
+    setErr('');
+    setBusy(true);
+    try {
+      await apiCall(`${endpoint}/${id}`, 'DELETE');
+      setDeleteTarget(null);
+      setEd(null);
+      reload();
+    } catch (x: any) {
+      setErr(x.message);
+      setDeleteTarget(null);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -172,16 +191,40 @@ export default function MasterPage({
                 </Field>
               ))}
             </div>
-            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-              <button type="button" className="btn" disabled={busy} onClick={() => setEd(null)}>
-                Cancel
-              </button>
-              <button type="submit" disabled={busy} className="btn primary">
-                {busy ? 'Saving…' : 'Save'}
-              </button>
+            <div className="row" style={{ justifyContent: 'space-between', marginTop: 16 }}>
+              {(ed.id || ed.account_id) ? (
+                <button
+                  type="button"
+                  className="btn ghost-red"
+                  disabled={busy}
+                  onClick={() => setDeleteTarget(ed)}
+                >
+                  Delete
+                </button>
+              ) : <div />}
+              <div className="row" style={{ gap: 8 }}>
+                <button type="button" className="btn" disabled={busy} onClick={() => setEd(null)}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={busy} className="btn primary">
+                  {busy ? 'Saving…' : 'Save'}
+                </button>
+              </div>
             </div>
           </form>
         </Modal>
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          title={`Delete ${title.replace(/ies$/, 'y').replace(/s$/, '')}`}
+          message={`Are you sure you want to delete "${deleteTarget.name}"? If this item has existing transactions, bills, or recurring rules attached, deletion will be blocked and you should deactivate it instead.`}
+          confirmText="Yes, Delete"
+          cancelText="Cancel"
+          danger
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => handleDelete(deleteTarget)}
+        />
       )}
     </>
   );

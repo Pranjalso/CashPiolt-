@@ -6,3 +6,8 @@ export const PUT = api(async (req, { params }) => {
   const s = await requireRole(...FINANCE);
   return accounts.update(s.orgId, Number(params.id), accountSchema.partial().parse(await req.json()));
 });
+
+export const DELETE = api(async (_req, { params }) => {
+  const s = await requireRole(...FINANCE);
+  return accounts.delete(s.orgId, Number(params.id));
+});

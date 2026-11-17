@@ -18,6 +18,52 @@ export function orgCrud(table: string, cols: string[], order = 'name') {
       if (!r) throw new HttpError(404, 'Not found');
       return r;
     },
+    delete: async (org: number, id: number) => {
+      // Pre-check for helpful dependency context before deletion
+      if (table === 'categories') {
+        const [{ count: txnCount }] = await query(
+          `SELECT COUNT(*)::int AS count FROM transactions WHERE org_id=$1 AND category_id=$2`, [org, id]);
+        if (txnCount > 0) {
+          throw new HttpError(422, `Cannot delete category: it is referenced by ${txnCount} cash book transaction(s). Deactivate it instead to keep transaction history intact.`);
+        }
+        const [{ count: duesCount }] = await query(
+          `SELECT COUNT(*)::int AS count FROM dues WHERE org_id=$1 AND category_id=$2`, [org, id]);
+        if (duesCount > 0) {
+          throw new HttpError(422, `Cannot delete category: it is referenced by ${duesCount} invoice(s)/bill(s).`);
+        }
+        const [{ count: ruleCount }] = await query(
+          `SELECT COUNT(*)::int AS count FROM recurring_rules WHERE org_id=$1 AND category_id=$2`, [org, id]);
+        if (ruleCount > 0) {
+          throw new HttpError(422, `Cannot delete category: it is referenced by ${ruleCount} recurring rule(s). Please update or delete those rules first.`);
+        }
+      } else if (table === 'accounts') {
+        const [{ count: txnCount }] = await query(
+          `SELECT COUNT(*)::int AS count FROM transactions WHERE org_id=$1 AND account_id=$2`, [org, id]);
+        if (txnCount > 0) {
+          throw new HttpError(422, `Cannot delete account: it has ${txnCount} cash book transaction(s) recorded. Deactivate it instead to preserve ledger audit history.`);
+        }
+        const [{ count: ruleCount }] = await query(
+          `SELECT COUNT(*)::int AS count FROM recurring_rules WHERE org_id=$1 AND account_id=$2`, [org, id]);
+        if (ruleCount > 0) {
+          throw new HttpError(422, `Cannot delete account: it is linked to ${ruleCount} active recurring rule(s).`);
+        }
+      } else if (table === 'parties') {
+        const [{ count: txnCount }] = await query(
+          `SELECT COUNT(*)::int AS count FROM transactions WHERE org_id=$1 AND party_id=$2`, [org, id]);
+        if (txnCount > 0) {
+          throw new HttpError(422, `Cannot delete customer/vendor: they have ${txnCount} linked transaction(s).`);
+        }
+        const [{ count: duesCount }] = await query(
+          `SELECT COUNT(*)::int AS count FROM dues WHERE org_id=$1 AND party_id=$2`, [org, id]);
+        if (duesCount > 0) {
+          throw new HttpError(422, `Cannot delete customer/vendor: they are linked to ${duesCount} invoice(s)/bill(s).`);
+        }
+      }
+
+      const r = await one(`DELETE FROM ${table} WHERE org_id=$1 AND id=$2 RETURNING id`, [org, id]);
+      if (!r) throw new HttpError(404, 'Not found');
+      return { ok: true, id };
+    },
   };
 }
 
